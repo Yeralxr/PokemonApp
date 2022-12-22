@@ -1,15 +1,43 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:pokeball_simulation/ui/widgets/item_pokemon_widget.dart';
 
-class HomePage extends StatelessWidget {
+import '../models/pokemon_model.dart';
+
+class HomePage extends StatefulWidget {
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
   //const HomePage({super.key});
+
+  List pokemons = [];
+  List<PokemonModel> pokemonsModel = [];
+
+  @override
+  initState() {
+    super.initState();
+    getDataPokemon();
+  }
 
   getDataPokemon() async {
     Uri _uri = Uri.parse(
         "https://raw.githubusercontent.com/Biuni/PokemonGO-Pokedex/master/pokedex.json");
     http.Response response = await http.get(_uri);
-    print(response.statusCode);
-    print(response.body);
+    if (response.statusCode == 200) {
+      Map<String, dynamic> myMap = json.decode(response.body);
+      //pokemons = myMap["pokemon"];
+      pokemonsModel =
+          myMap["pokemon"].map((e) => PokemonModel.fromJson(e)).toList();
+      print(pokemonsModel);
+      setState(() {});
+      /*pokemons.forEach((element) {
+        print(element["name"]);
+      });*/
+    }
   }
 
   @override
@@ -36,24 +64,21 @@ class HomePage extends StatelessWidget {
                   height: 30.0,
                 ),
                 GridView.count(
+                  physics: const ScrollPhysics(),
                   shrinkWrap: true,
                   crossAxisCount: 2,
                   mainAxisSpacing: 12.0,
                   crossAxisSpacing: 12.0,
                   childAspectRatio: 1.35,
-                  children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Color(0xff4CCFB2),
-                        borderRadius: BorderRadius.circular(18.0),
-                      ),
-                      child: Stack(
-                        children: [
-                          Image.asset('assets/images/pokeball.png'),
-                        ],
-                      ),
-                    ),
-                  ],
+                  children: pokemonsModel
+                      .map(
+                        (e) => ItemPokemonWidget(
+                          name: e.name,
+                          image: e.img,
+                          types: e.type,
+                        ),
+                      )
+                      .toList(),
                 ),
               ],
             ),
